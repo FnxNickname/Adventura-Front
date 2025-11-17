@@ -18,14 +18,6 @@ If you have a smartphone under IOS, scan this QR code to download Expo Go : http
 
 If you have a smartphone under Android, scan this QR code to download Expo Go : https://expo.dev/go?sdkVersion=54&platform=android&device=true
 
-
-
-
-npm install
-
-
-(This installs all required npm packages.)
-
 Open the Adventura folder in Visual Studio Code
   
 Run this command in the terminal to install all the packages needed : 
