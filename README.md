@@ -12,8 +12,6 @@ Make sure the installation includes:
 
 - Add to PATH
 
-(Optionnal)
-
 (Optionnal) I used Visual Studio Code but you can use any editor : https://code.visualstudio.com/download
 
 If you have a smartphone under IOS, scan this QR code to download Expo Go : https://expo.dev/go?sdkVersion=54&platform=ios&device=true
