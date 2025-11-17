@@ -10,6 +10,6 @@ If you are on an Iphone device, download this app : https://expo.dev/go?sdkVersi
 
   npm start
 
-  A QR code will appear in the terminal, scan it with your Iphone and click "Open with Expo Go"
+A QR code will appear in the terminal, scan it with your Iphone and click "Open with Expo Go"
 
-  That's the app.
+That's the app.
