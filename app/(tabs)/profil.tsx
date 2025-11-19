@@ -9,41 +9,57 @@ import {
 
 export default function ProfilScreen() {
   const stats = [
-    { label: "PXs", value: "1 240" },
-    { label: "Pièces", value: "320" },
+    { label: "PX totaux", value: "1 240" },
+    { label: "Trésors créés", value: "2" },
     { label: "Trésors trouvés", value: "18" },
-    { label: "Expéditions", value: "5" },
+    { label: "Expéditions terminées", value: "5" },
+    { label: "Badges obtenus", value: "12/76" },
+    { label: "Cosmétiques possédés", value: "8/23" }  
   ];
 
   const inventory = [
     { label: "Clés bronze", value: 3 },
     { label: "Clés argent", value: 1 },
     { label: "Clés or", value: 0 },
-    { label: "Bonus temps", value: 2 },
-    { label: "Skin avatar", value: 4 },
+    { label: "Reliques dorées", value: 1 },
+    { label: "Jackpots", value: 5 },
+    
   ];
 
   const collection = [
-    { name: "Totem ancien", theme: "Histoire" },
-    { name: "Feuille rare", theme: "Nature" },
-    { name: "Tarte locale", theme: "Gastronomie" },
-    { name: "Fossile marin", theme: "Nature" },
-    { name: "Monnaie ancienne", theme: "Histoire" },
-    { name: "Objet mystère", theme: "???"},
+    { name: "Château de Versailles", theme: "Histoire" },
+    { name: "Falaises d'Etretat", theme: "Nature" },
+    { name: "Paris-Brest", theme: "Gastronomie" },
+    { name: "Sabre Laser", theme: "Cinéma" },
+    { name: "Champignon 1UP", theme: "Jeux vidéos" },
+    { name: "Canada", theme: "Drapeaux"},
   ];
+
+  const themeEmojis: Record<string, string> = {
+    Nature: "🏞️",
+    Histoire: "🏛️",
+    Gastronomie: "🍽️",
+    Art: "🎨",
+    Science: "🔬",
+    Cinéma: "🎞️",
+    "Jeux Vidéo": "👾",
+    "Drapeaux": "🗺️",
+  };
+
+
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* HEADER AVATAR / NOM / RÔLE */}
+
         <View style={styles.header}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>EX</Text>
+            <Text style={styles.avatarText}>AV</Text>
           </View>
           <View style={styles.headerInfo}>
             <Text style={styles.username}>Explorateur Ilyass</Text>
-            <Text style={styles.role}>Rang : Artisan</Text>
-            <Text style={styles.subtitle}>Niveau 7 • +15 PXs à la prochaine découverte</Text>
+            <Text style={styles.role}>Artisan</Text>
+            <Text style={styles.subtitle}>Niveau 7 | 15 PX avant prochain niveau</Text>
           </View>
         </View>
 
@@ -67,7 +83,7 @@ export default function ProfilScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Inventaire</Text>
-            <Text style={styles.sectionSubtitle}>Clés & objets bonus</Text>
+            <Text style={styles.sectionSubtitle}>Objets bonus</Text>
           </View>
 
           <ScrollView
@@ -89,7 +105,7 @@ export default function ProfilScreen() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Collection</Text>
             <Text style={styles.sectionSubtitle}>
-              Tes trésors trouvés en expédition
+              Répertoire de tes trouvailles
             </Text>
           </View>
 
@@ -97,7 +113,8 @@ export default function ProfilScreen() {
             {collection.map((item, index) => (
               <View key={`${item.name}-${index}`} style={styles.collectionCard}>
                 <View style={styles.collectionIcon}>
-                  <Text style={styles.collectionIconText}>🏆</Text>
+                  <Text style={styles.collectionIconText}> {themeEmojis[item.theme] || "❓"} </Text>
+
                 </View>
                 <Text style={styles.collectionName} numberOfLines={1}>
                   {item.name}
@@ -137,14 +154,16 @@ export default function ProfilScreen() {
   );
 }
 
-const CARD_BG = "#101827"; // fond sombre bleuté
-const CARD_BORDER = "#1f2937";
-const ACCENT = "#38bdf8";
+const CARD_BG = "#ffffff";       // Fond blanc
+const CARD_BORDER = "#e5e7eb";   // Gris très clair
+const ACCENT = "#0ea5e9";        // Bleu lumineux (accent)
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#020617", // fond global
+    backgroundColor: "#f9fafb",  // Gris très clair "app moderne"
+
   },
   scrollContent: {
     padding: 16,
@@ -167,7 +186,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   avatarText: {
-    color: "white",
+    color: "#1f2937",
     fontSize: 26,
     fontWeight: "700",
   },
@@ -175,7 +194,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   username: {
-    color: "white",
+    color: "#1f2937",
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 4,
@@ -186,7 +205,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   subtitle: {
-    color: "#6b7280",
+    color: "#9ca3af",
     fontSize: 12,
   },
 
@@ -197,12 +216,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionTitle: {
-    color: "white",
+    color: "#1f2937",
     fontSize: 16,
     fontWeight: "700",
   },
   sectionSubtitle: {
-    color: "#6b7280",
+    color: "#9ca3af",
     fontSize: 12,
   },
 
@@ -213,17 +232,22 @@ const styles = StyleSheet.create({
     gap: 12,
     marginTop: 8,
   },
-  statCard: {
-    backgroundColor: CARD_BG,
-    borderColor: CARD_BORDER,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    width: "48%",
-  },
+ statCard: {
+  backgroundColor: CARD_BG,
+  borderColor: CARD_BORDER,
+  borderWidth: 1,
+  borderRadius: 12,
+  paddingVertical: 12,
+  paddingHorizontal: 16,
+  width: "48%",
+  shadowColor: "#000",
+  shadowOpacity: 0.05,
+  shadowRadius: 4,
+  elevation: 1,
+},
+
   statValue: {
-    color: "white",
+    color: "#1f2937",
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 4,
@@ -254,7 +278,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   inventoryValue: {
-    color: "white",
+    color: "#1f2937",
     fontSize: 16,
     fontWeight: "700",
   },
@@ -282,13 +306,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   collectionName: {
-    color: "white",
+    color: "#1f2937",
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 2,
   },
   collectionTheme: {
-    color: "#6b7280",
+    color: "#9ca3af",
     fontSize: 11,
   },
   collectionButton: {
@@ -321,7 +345,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   quickButtonText: {
-    color: "white",
+    color: "#1f2937",
     fontSize: 13,
     fontWeight: "500",
   },
