@@ -1,50 +1,33 @@
-# Welcome to your Expo app 👋
+This project uses Expo and React Native.
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Follow these steps to run the app on your device.
 
-## Get started
+You will have to get Node.js (LTS version) : https://nodejs.org/en/download
 
-1. Install dependencies
+Make sure the installation includes:
 
-   ```bash
-   npm install
-   ```
+- Node.js runtime
 
-2. Start the app
+- npm
 
-   ```bash
-   npx expo start
-   ```
+- Add to PATH
 
-In the output, you'll find options to open the app in a
+(Optionnal) I used Visual Studio Code but you can use any editor : https://code.visualstudio.com/download
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+If you have a smartphone under IOS, scan this QR code to download Expo Go : https://expo.dev/go?sdkVersion=54&platform=ios&device=true
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+If you have a smartphone under Android, scan this QR code to download Expo Go : https://expo.dev/go?sdkVersion=54&platform=android&device=true
 
-## Get a fresh project
+Open the Adventura folder in Visual Studio Code
+  
+Run this command in the terminal to install all the packages needed : 
+  
+  npm install
 
-When you're ready, run:
+Then run this one :
 
-```bash
-npm run reset-project
-```
+  npm start
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+A QR code will appear in the terminal, scan it with your Iphone and click "Open with Expo Go"
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+That's the app.
