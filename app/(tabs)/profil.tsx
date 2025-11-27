@@ -63,7 +63,6 @@ export default function ProfilScreen() {
           </View>
         </View>
 
-        {/* STATS */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Statistiques</Text>
@@ -79,7 +78,6 @@ export default function ProfilScreen() {
           </View>
         </View>
 
-        {/* INVENTAIRE */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Inventaire</Text>
@@ -100,7 +98,6 @@ export default function ProfilScreen() {
           </ScrollView>
         </View>
 
-        {/* COLLECTION */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Collection</Text>
@@ -129,7 +126,6 @@ export default function ProfilScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* PARAMÈTRES RAPIDES */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Paramètres rapides</Text>
@@ -154,15 +150,15 @@ export default function ProfilScreen() {
   );
 }
 
-const CARD_BG = "#ffffff";       // Fond blanc
-const CARD_BORDER = "#e5e7eb";   // Gris très clair
-const ACCENT = "#0ea5e9";        // Bleu lumineux (accent)
+const CARD_BG = "#ffffff";       
+const CARD_BORDER = "#e5e7eb";   
+const ACCENT = "#0ea5e9";        
 
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",  // Gris très clair "app moderne"
+    backgroundColor: "#f9fafb",  
 
   },
   scrollContent: {
@@ -178,7 +174,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: "#0f172a",
+    backgroundColor: "#f9fafb",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
@@ -186,7 +182,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   avatarText: {
-    color: "#1f2937",
+    color: "#9ca3af",
     fontSize: 26,
     fontWeight: "700",
   },
@@ -225,7 +221,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
-  // Stats
   statsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -257,7 +252,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
-  // Inventaire
   inventoryScroll: {
     marginTop: 8,
     paddingRight: 8,
@@ -283,7 +277,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  // Collection
   collectionGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -329,7 +322,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Quick settings
   quickSettings: {
     flexDirection: "row",
     flexWrap: "wrap",
