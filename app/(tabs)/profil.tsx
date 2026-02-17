@@ -58,7 +58,7 @@ export default function ProfilScreen() {
           </View>
           <View style={styles.headerInfo}>
             <Text style={styles.username}>Explorateur Ilyass</Text>
-            <Text style={styles.role}>Artisan</Text>
+            <Text style={styles.role}>Aspirant</Text>
             <Text style={styles.subtitle}>Niveau 7 | 15 PX avant prochain niveau</Text>
           </View>
         </View>
