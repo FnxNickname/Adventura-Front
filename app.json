@@ -38,7 +38,19 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "@viro-community/react-viro",
+        {
+          "android": {
+            "arCoreRequires": "required"
+          },
+          "ios": {
+            "cameraUsagePermission": "Autoriser l'accès à la caméra pour trouver les objets en 3D !"
+          }
+        }
       ]
+      
     ],
     "experiments": {
       "typedRoutes": true,
