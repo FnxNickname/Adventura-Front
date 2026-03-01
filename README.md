@@ -20,9 +20,13 @@ If you have a smartphone under Android, scan this QR code to download Expo Go : 
 
 Open the Adventura folder in Visual Studio Code
   
-Run this command in the terminal to install all the packages needed : 
+Run these commands in the terminal to install all the packages needed : 
   
   npm install
+
+  npm install @react-native-async-storage/async-storage react-native-color-picker
+
+  npm audit fix
 
 Then run this one :
 
