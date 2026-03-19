@@ -1,0 +1,68 @@
+export default () => ({
+  expo: {
+    name: "Adventura",
+    slug: "Adventura",
+    version: "1.0.0",
+    orientation: "portrait",
+    icon: "./assets/images/icon.png",
+    scheme: "adventura",
+    userInterfaceStyle: "automatic",
+    newArchEnabled: true,
+    ios: {
+      supportsTablet: true,
+      infoPlist: {
+        NSPhotoLibraryUsageDescription:
+          "Allow $(PRODUCT_NAME) to access your photos",
+        NSPhotoLibraryAddUsageDescription:
+          "Allow $(PRODUCT_NAME) to save photos",
+      },
+    },
+    android: {
+      adaptiveIcon: {
+        backgroundColor: "#E6F4FE",
+        foregroundImage: "./assets/images/android-icon-foreground.png",
+        backgroundImage: "./assets/images/android-icon-background.png",
+        monochromeImage: "./assets/images/android-icon-monochrome.png",
+      },
+      edgeToEdgeEnabled: true,
+      predictiveBackGestureEnabled: false,
+      package: "com.anonymous.Adventura",
+      config: {
+        googleMaps: {
+          apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
+        },
+      },
+    },
+    web: {
+      output: "static",
+      favicon: "./assets/images/favicon.png",
+    },
+    plugins: [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          image: "./assets/images/splash-icon.png",
+          imageWidth: 200,
+          resizeMode: "contain",
+          backgroundColor: "#ffffff",
+          dark: {
+            backgroundColor: "#000000",
+          },
+        },
+      ],
+      [
+        "expo-camera",
+        {
+          cameraPermission:
+            "Adventura a besoin de la caméra pour afficher le cube 3D.",
+        },
+      ],
+      "expo-web-browser",
+    ],
+    experiments: {
+      typedRoutes: true,
+      reactCompiler: true,
+    },
+  },
+});
