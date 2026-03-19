@@ -1,9 +1,9 @@
 import {
+  Viro3DObject,
   ViroAmbientLight,
   ViroAnimations,
   ViroARScene,
   ViroARSceneNavigator,
-  ViroBox,
   ViroMaterials,
   ViroNode,
   ViroSpotLight,
@@ -12,9 +12,10 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+const HOLD_DURATION = 2000;
+const TICK_MS = 50;
 
-const HOLD_DURATION = 2000; // 2 secondes
-const TICK_MS = 50; // fréquence de mise à jour
+const chestModel = require("../assets/chest.glb");
 
 ViroMaterials.createMaterials({
   cubeFace: {
@@ -34,7 +35,7 @@ ViroAnimations.registerAnimations({
   },
 });
 
-function ARCubeScene() {
+function ARScene() {
   const [shakeOffset, setShakeOffset] = useState<[number, number, number]>([
     0, 0, 0,
   ]);
@@ -122,20 +123,17 @@ function ARCubeScene() {
         position={[0, 5, 0]}
         direction={[0, -1, 0]}
         color="#ffffff"
-        intensity={500}
-        attenuationStartDistance={5}
-        attenuationEndDistance={10}
-        castsShadow={true}
-        shadowOpacity={0.4}
       />
-
-      <ViroNode position={[0, -0.5, -1.5]}>
-        <ViroBox
-          position={[shakeOffset[0], 0.5 + shakeOffset[1], shakeOffset[2]]}
+      <ViroNode>
+        <Viro3DObject
+          source={chestModel}
+          type="GLB"
+          position={[shakeOffset[0], 0 + shakeOffset[1], -1 + shakeOffset[2]]}
           scale={cubeScale}
-          materials={[isHolding ? "cubeCharging" : "cubeFace"]}
           animation={{ name: "rotate", run: true, loop: true }}
           onClickState={handleClickState}
+          onLoadEnd={() => console.log("Chest model loaded")}
+          onLoadError={(error) => console.log("Chest model error:", error)}
         />
       </ViroNode>
     </ViroARScene>
@@ -148,15 +146,13 @@ export default function ARScreen() {
   return (
     <View style={styles.container}>
       <ViroARSceneNavigator
-        initialScene={{ scene: ARCubeScene }}
+        initialScene={{ scene: ARScene }}
         style={styles.arView}
         autofocus={true}
       />
 
       <View style={styles.overlay}>
-        <Text style={styles.info}>
-          Maintiens le cube 2s pour ouvrir le coffre
-        </Text>
+        <Text style={styles.info}>Maintiens le coffre 2s pour l'ouvrir</Text>
       </View>
 
       <Pressable style={styles.backBtn} onPress={() => router.back()}>

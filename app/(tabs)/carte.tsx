@@ -1,469 +1,364 @@
-import { CameraView, useCameraPermissions } from "expo-camera";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
-  Animated,
-  Easing,
-  Pressable,
-  SafeAreaView,
+  Platform,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
+import MapView, { Circle } from "react-native-maps";
 
-// ─── Cube constants ───────────────────────────────────────────────────────────
-const S = 100; // face size (points)
-const H = S / 2; // half-size
-const CHEST_HOLD_MS = 2000;
-
-// ─── Rotating 3D Cube ─────────────────────────────────────────────────────────
-//
-// Each face is a SIZE×SIZE View positioned with ONLY RN-supported transforms
-// (rotateX, rotateY, translateX, translateY – no translateZ).
-//
-// translateZ(h) ≡ [rotateX('90deg'), translateY(h), rotateX('-90deg')]
-// because rotating around X swaps Y ↔ Z, so a Y-translation in that rotated
-// frame becomes a Z-translation in world space.
-
-function RotatingCube() {
-  const progress = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(progress, {
-        toValue: 1,
-        duration: 3000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ).start();
-  }, [progress]);
-
-  const rotateY = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
-  });
-
-  const floatY = progress.interpolate({
-    inputRange: [0, 0.25, 0.5, 0.75, 1],
-    outputRange: [0, -14, 0, 14, 0],
-  });
-
-  return (
-    <View style={styles.cubeWrap}>
-      <Animated.View
-        style={[
-          styles.cubeInner,
-          {
-            transform: [
-              { perspective: 500 },
-              { translateY: floatY },
-              { rotateY },
-              { rotateX: "15deg" },
-            ],
-          },
-        ]}
-      >
-        {/* Front — translateZ +H via rotateX sandwich */}
-        <View
-          style={[
-            styles.face,
-            { backgroundColor: "#20d3c2" },
-            {
-              transform: [
-                { rotateX: "90deg" },
-                { translateY: H },
-                { rotateX: "-90deg" },
-              ],
-            },
-          ]}
-        />
-
-        {/* Back — translateZ -H then rotateY 180° */}
-        <View
-          style={[
-            styles.face,
-            { backgroundColor: "#0f6e66" },
-            {
-              transform: [
-                { rotateX: "90deg" },
-                { translateY: -H },
-                { rotateX: "-90deg" },
-                { rotateY: "180deg" },
-              ],
-            },
-          ]}
-        />
-
-        {/* Left — translateX -H then rotateY -90° */}
-        <View
-          style={[
-            styles.face,
-            { backgroundColor: "#14a094" },
-            { transform: [{ translateX: -H }, { rotateY: "-90deg" }] },
-          ]}
-        />
-
-        {/* Right — translateX +H then rotateY +90° */}
-        <View
-          style={[
-            styles.face,
-            { backgroundColor: "#0a504a" },
-            { transform: [{ translateX: H }, { rotateY: "90deg" }] },
-          ]}
-        />
-
-        {/* Top — translateY -H then rotateX -90° */}
-        <View
-          style={[
-            styles.face,
-            { backgroundColor: "#64e6da" },
-            { transform: [{ translateY: -H }, { rotateX: "-90deg" }] },
-          ]}
-        />
-
-        {/* Bottom — translateY +H then rotateX +90° */}
-        <View
-          style={[
-            styles.face,
-            { backgroundColor: "#083c37" },
-            { transform: [{ translateY: H }, { rotateX: "90deg" }] },
-          ]}
-        />
-      </Animated.View>
-    </View>
-  );
+interface Treasure {
+  id: string;
+  latitude: number;
+  longitude: number;
+  name: string;
+  radius: number;
+  color: string;
 }
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
+interface UserLocation {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+}
 
 export default function CarteScreen() {
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [rewardCount, setRewardCount] = useState(0);
-  const [isCharging, setIsCharging] = useState(false);
-  const [permission, requestPermission] = useCameraPermissions();
-  const chargeProgress = useRef(new Animated.Value(0)).current;
-  const shakePhase = useRef(new Animated.Value(0)).current;
-  const chargeAnimRef = useRef<Animated.CompositeAnimation | null>(null);
-  const shakeLoopRef = useRef<Animated.CompositeAnimation | null>(null);
+  const modeDev = false;
+
+  const mapRef = useRef<MapView>(null);
   const router = useRouter();
 
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+
+  const [treasures] = useState<Treasure[]>([
+    {
+      id: "treasure1",
+      latitude: 48.89764,
+      longitude: 2.23664,
+      name: "Trésor Bleu",
+      radius: 50,
+      color: "#007AFF",
+    },
+    {
+      id: "treasure2",
+      latitude: 48.89603,
+      longitude: 2.23419,
+      name: "Trésor Vert",
+      radius: 50,
+      color: "#34C759",
+    },
+    {
+      id: "treasure3",
+      latitude: 48.89353,
+      longitude: 2.23869,
+      name: "Trésor Rouge",
+      radius: 50,
+      color: "#FF3B30",
+    },
+  ]);
+
+  const [zoomLevel, setZoomLevel] = useState(16);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
+    let positionSub: Location.LocationSubscription | null = null;
+
+    const start = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert(
+            "Permission refusée",
+            "Permission d'accès à la localisation refusée",
+          );
+          setLoading(false);
+          return;
+        }
+
+        const initial = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
+
+        setUserLocation({
+          latitude: initial.coords.latitude,
+          longitude: initial.coords.longitude,
+          accuracy: initial.coords.accuracy || 0,
+        });
+
+        mapRef.current?.animateToRegion(
+          {
+            latitude: initial.coords.latitude,
+            longitude: initial.coords.longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          },
+          500,
+        );
+
+        positionSub = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 1000,
+            distanceInterval: 2,
+          },
+          (loc) => {
+            setUserLocation({
+              latitude: loc.coords.latitude,
+              longitude: loc.coords.longitude,
+              accuracy: loc.coords.accuracy || 0,
+            });
+          },
+        );
+        setLoading(false);
+      } catch (e) {
+        console.error(e);
+        Alert.alert("Erreur", "Impossible d'accéder à votre localisation");
+        setLoading(false);
+      }
+    };
+
+    start();
+
     return () => {
-      chargeAnimRef.current?.stop();
-      shakeLoopRef.current?.stop();
+      positionSub?.remove();
     };
   }, []);
 
-  const handleOpen = async () => {
-    if (!permission?.granted) {
-      const res = await requestPermission();
-      if (!res.granted) {
-        Alert.alert(
-          "Permission requise",
-          "Autorise la caméra pour voir le cube 3D.",
-        );
-        return;
-      }
+  const handleZoomIn = () => {
+    const newZoom = Math.min(zoomLevel + 1, 20);
+    setZoomLevel(newZoom);
+
+    if (mapRef.current && userLocation) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          latitudeDelta: 0.05 / Math.pow(2, newZoom - 16),
+          longitudeDelta: 0.05 / Math.pow(2, newZoom - 16),
+        },
+        300,
+      );
     }
-    setIsCameraOpen(true);
   };
 
-  const stopShake = () => {
-    shakeLoopRef.current?.stop();
-    shakeLoopRef.current = null;
-    Animated.spring(shakePhase, {
-      toValue: 0,
-      damping: 10,
-      stiffness: 220,
-      mass: 0.7,
-      useNativeDriver: true,
-    }).start();
+  const handleZoomOut = () => {
+    const newZoom = Math.max(zoomLevel - 1, 10);
+    setZoomLevel(newZoom);
+
+    if (mapRef.current && userLocation) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          latitudeDelta: 0.05 / Math.pow(2, newZoom - 16),
+          longitudeDelta: 0.05 / Math.pow(2, newZoom - 16),
+        },
+        300,
+      );
+    }
   };
 
-  const handleCubePressIn = () => {
-    setIsCharging(true);
-    chargeAnimRef.current?.stop();
-    shakeLoopRef.current?.stop();
-
-    chargeProgress.setValue(0);
-    shakePhase.setValue(0);
-
-    shakeLoopRef.current = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shakePhase, {
-          toValue: 1,
-          duration: 40,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shakePhase, {
-          toValue: -1,
-          duration: 40,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    shakeLoopRef.current.start();
-
-    chargeAnimRef.current = Animated.timing(chargeProgress, {
-      toValue: 1,
-      duration: CHEST_HOLD_MS,
-      easing: Easing.linear,
-      useNativeDriver: true,
-    });
-
-    chargeAnimRef.current.start(({ finished }) => {
-      if (!finished) {
-        return;
-      }
-
-      setIsCharging(false);
-      setRewardCount((prev) => prev + 1);
-      Alert.alert("Coffre ouvert", "+1 recompense obtenue.");
-      stopShake();
-
-      Animated.timing(chargeProgress, {
-        toValue: 0,
-        duration: 250,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }).start();
-    });
+  const handleCenterOnUser = () => {
+    if (userLocation && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          latitudeDelta: 0.007,
+          longitudeDelta: 0.007,
+        },
+        500,
+      );
+    }
   };
 
-  const handleCubePressOut = () => {
-    chargeAnimRef.current?.stop();
-    chargeAnimRef.current = null;
-    setIsCharging(false);
-    stopShake();
-
-    Animated.timing(chargeProgress, {
-      toValue: 0,
-      duration: 180,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    }).start();
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
 
-  const shakeStrength = chargeProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.5, 12],
-  });
-
-  const shakeX = Animated.multiply(shakePhase, shakeStrength);
-
-  const chargeScale = chargeProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 1.35],
-  });
-
-  const pulseOpacity = chargeProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.15, 0.7],
-  });
-
-  const progressBarScale = chargeProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.02, 1],
-  });
-
-  if (isCameraOpen) {
+  if (loading) {
     return (
-      <View style={styles.fullScreen}>
-        <CameraView style={StyleSheet.absoluteFill} facing="back" />
-
-        <View style={styles.hud}>
-          <Text style={styles.hudText}>Recompenses: {rewardCount}</Text>
-        </View>
-
-        <View style={styles.overlay}>
-          <Pressable
-            style={styles.cubeTapArea}
-            onPressIn={handleCubePressIn}
-            onPressOut={handleCubePressOut}
-          >
-            <Animated.View
-              style={[
-                styles.chargeAura,
-                {
-                  opacity: pulseOpacity,
-                  transform: [{ scale: chargeScale }],
-                },
-              ]}
-            />
-            <Animated.View
-              style={{
-                transform: [{ translateX: shakeX }, { scale: chargeScale }],
-              }}
-            >
-              <RotatingCube />
-            </Animated.View>
-          </Pressable>
-
-          <View style={styles.progressTrack}>
-            <Animated.View
-              style={[
-                styles.progressFill,
-                { transform: [{ scaleX: progressBarScale }] },
-              ]}
-            />
-          </View>
-
-          <Text style={styles.label}>
-            {isCharging
-              ? "Charge du coffre... maintiens 3 secondes"
-              : "Maintiens le cube 3 secondes pour ouvrir le coffre"}
-          </Text>
-        </View>
-
-        <Pressable
-          style={styles.closeBtn}
-          onPress={() => setIsCameraOpen(false)}
-        >
-          <Text style={styles.btnText}>Fermer</Text>
-        </Pressable>
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Chargement de la localisation...</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.menu}>
-      <Text style={styles.title}>Carte</Text>
-      <Text style={styles.subtitle}>
-        Ouvre la caméra pour voir un cube 3D dans l'espace en 3D.
-      </Text>
-      {/* <Pressable style={styles.openBtn} onPress={handleOpen}>
-        <Text style={styles.btnText}>Ouvrir la caméra</Text>
-      </Pressable> */}
-      <Pressable
-        style={[styles.openBtn, { marginTop: 14 }]}
+    <View style={styles.container}>
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        provider={Platform.OS === "android" ? "google" : undefined}
+        initialRegion={{
+          latitude: userLocation?.latitude || 48.8566,
+          longitude: userLocation?.longitude || 2.3522,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        }}
+        showsUserLocation={true}
+        showsMyLocationButton={false}
+        showsCompass
+      >
+        {treasures.map((treasure) => (
+          <Circle
+            key={treasure.id}
+            center={{
+              latitude: treasure.latitude,
+              longitude: treasure.longitude,
+            }}
+            radius={treasure.radius}
+            fillColor={hexToRgba(treasure.color, 0.2)}
+            strokeColor={hexToRgba(treasure.color, 0.6)}
+            strokeWidth={2}
+          />
+        ))}
+      </MapView>
+
+      <View style={styles.zoomButtons}>
+        <TouchableOpacity style={styles.button} onPress={handleZoomIn}>
+          <Text style={styles.buttonText}>+</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, { borderBottomWidth: 0 }]}
+          onPress={handleZoomOut}
+        >
+          <Text style={styles.buttonText}>−</Text>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        style={styles.centerButton}
+        onPress={handleCenterOnUser}
+      >
+        <Text style={styles.centerButtonText}>🎯</Text>
+      </TouchableOpacity>
+
+      {/* Bouton AR en bas à droite */}
+      <TouchableOpacity
+        style={styles.arButton}
         onPress={() => router.push("/ar")}
       >
-        <Text style={styles.btnText}>Ouvrir la caméra AR</Text>
-      </Pressable>
-    </SafeAreaView>
+        <Text style={styles.arButtonText}>AR</Text>
+      </TouchableOpacity>
+
+      {modeDev && userLocation && (
+        <View style={styles.infoPanel}>
+          <Text style={styles.infoText}>
+            Lat: {userLocation.latitude.toFixed(5)}
+          </Text>
+          <Text style={styles.infoText}>
+            Lon: {userLocation.longitude.toFixed(5)}
+          </Text>
+          <Text style={styles.infoText}>
+            Précision: ±{Math.round(userLocation.accuracy)}m
+          </Text>
+        </View>
+      )}
+    </View>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-  fullScreen: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  menu: {
-    flex: 1,
-    backgroundColor: "#f5f7fb",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: "800",
-    color: "#1a2538",
-    marginBottom: 8,
-  },
-  subtitle: {
+  container: { flex: 1, backgroundColor: "#fff" },
+  map: { flex: 1 },
+
+  loadingText: {
     fontSize: 16,
-    color: "#475a74",
     textAlign: "center",
-    marginBottom: 22,
+    marginTop: 50,
+    color: "#666",
   },
-  openBtn: {
-    backgroundColor: "#1f6feb",
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  hud: {
+
+  zoomButtons: {
     position: "absolute",
-    top: 56,
-    alignSelf: "center",
-    backgroundColor: "rgba(0,0,0,0.45)",
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-  },
-  hudText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  cubeTapArea: {
-    width: 160,
-    height: 160,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  chargeAura: {
-    position: "absolute",
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: "#37fff0",
-  },
-  progressTrack: {
-    width: 220,
-    height: 10,
-    marginTop: 18,
-    borderRadius: 999,
+    right: 15,
+    bottom: 15,
+    backgroundColor: "#fff",
+    borderRadius: 8,
     overflow: "hidden",
-    backgroundColor: "rgba(255,255,255,0.25)",
+    elevation: 5,
   },
-  progressFill: {
-    flex: 1,
-    backgroundColor: "#7dff55",
-    transformOrigin: "left",
-  },
-  label: {
-    marginTop: 110,
-    color: "#e0fffd",
-    fontSize: 15,
-    fontWeight: "600",
-    textShadowColor: "rgba(0,0,0,0.85)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  closeBtn: {
-    position: "absolute",
-    bottom: 36,
-    alignSelf: "center",
-    backgroundColor: "rgba(0,0,0,0.65)",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-  },
-  btnText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  cubeWrap: {
-    width: S,
-    height: S,
-    alignItems: "center",
+
+  button: {
+    width: 50,
+    height: 50,
     justifyContent: "center",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
-  cubeInner: {
-    width: S,
-    height: S,
+
+  buttonText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
   },
-  face: {
+
+  centerButton: {
     position: "absolute",
-    width: S,
-    height: S,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.25)",
-    backfaceVisibility: "hidden",
+    right: 15,
+    bottom: 125,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+  },
+
+  centerButtonText: { fontSize: 24 },
+
+  arButton: {
+    position: "absolute",
+    right: 15,
+    bottom: 180,
+    width: 50,
+    height: 50,
+    borderRadius: 28,
+    backgroundColor: "#20d3c2",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+  },
+
+  arButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#fff",
+  },
+
+  infoPanel: {
+    position: "absolute",
+    top: 15,
+    left: 15,
+    right: 15,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    padding: 10,
+    borderRadius: 8,
+    elevation: 5,
+  },
+
+  infoText: {
+    fontSize: 12,
+    color: "#333",
+    marginVertical: 2,
   },
 });

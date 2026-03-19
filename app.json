@@ -24,7 +24,12 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.Adventura"
+      "package": "com.anonymous.Adventura",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBscfqQjgz0BeBv8U_NIQkfgmf3-BKgZgo"
+        }
+      }
     },
     "web": {
       "output": "static",
