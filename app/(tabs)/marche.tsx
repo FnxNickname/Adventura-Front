@@ -283,8 +283,12 @@ export default function MarcheScreen() {
                 </View>
               ))}
               <View style={s.modalBtns}>
-                <Pressable style={s.btnCancel} onPress={cancelBuy}><Text style={s.btnCancelText}>Annuler</Text></Pressable>
-                <Pressable style={s.btnConfirm} onPress={confirmBuy}><Text style={s.btnConfirmText}>Confirmer</Text></Pressable>
+                <Pressable style={[s.btnCancel, { flex: 1 }]} onPress={cancelBuy}>
+                  <Text style={s.btnCancelText}>Annuler</Text>
+                </Pressable>
+                <Pressable style={[s.btnConfirm, { flex: 1 }]} onPress={confirmBuy}>
+                  <Text style={s.btnConfirmText}>Confirmer l'achat</Text>
+                </Pressable>
               </View>
             </>)}
           </View>
@@ -299,7 +303,7 @@ export default function MarcheScreen() {
             <Text style={s.feedbackTitle}>{feedback.success ? "Achat réussi !" : "Impossible"}</Text>
             <Text style={s.feedbackMsg}>{feedback.message}</Text>
             <Pressable style={[s.btnConfirm, { alignSelf:"center", paddingHorizontal:32 }]} onPress={() => setFeedback(f => ({ ...f, visible:false }))}>
-              <Text style={s.btnConfirmText}>OK</Text>
+              <Text style={s.btnConfirmText}>Fermer</Text>
             </Pressable>
           </View>
         </View>
@@ -374,10 +378,10 @@ const s = StyleSheet.create({
   modalRowLabel: { fontSize:13, color:"#9CA3AF" },
   modalRowValue: { fontSize:14, fontWeight:"700", color:"#111827" },
   modalBtns: { flexDirection:"row", gap:12, marginTop:20, width:"100%" },
-  btnCancel: { flex:1, padding:14, backgroundColor:"#F3F4F6", borderRadius:14, alignItems:"center" },
+  btnCancel: { padding:14, backgroundColor:"#F3F4F6", borderRadius:14, alignItems:"center" },
   btnCancelText: { fontWeight:"700", color:"#374151", fontSize:14 },
-  btnConfirm: { flex:1, padding:14, backgroundColor:"#111827", borderRadius:14, alignItems:"center" },
-  btnConfirmText: { fontWeight:"700", color:"white", fontSize:14 },
+  btnConfirm: { padding:14, backgroundColor:"#111827", borderRadius:14, alignItems:"center" },
+  btnConfirmText: { fontWeight:"700", color:"#FFFFFF", fontSize:14 },
   feedbackBox: { backgroundColor:"white", borderRadius:24, padding:28, width:"100%", maxWidth:320, alignItems:"center", shadowColor:"#000", shadowOffset:{width:0,height:8}, shadowOpacity:0.15, shadowRadius:24, elevation:12 },
   feedbackIcon: { fontSize:56, marginBottom:12 },
   feedbackTitle: { fontSize:20, fontWeight:"800", color:"#111827", marginBottom:8 },

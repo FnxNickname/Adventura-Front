@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   FlatList,
-  Image,
   ImageBackground,
   StyleSheet,
   Text,
@@ -28,21 +27,21 @@ export default function ClassementScreen() {
   const [tab, setTab] = useState<"explorateur" | "artisan">("explorateur");
 
   const explorers: Explorer[] = [
-    { id: "1", name: "Ilyass", points: 1280, treasures: 18, avatar: "https://i.pravatar.cc/150?img=1" },
-    { id: "2", name: "Ambre", points: 920, treasures: 11, avatar: "https://i.pravatar.cc/150?img=2" },
-    { id: "3", name: "Pierre", points: 740, treasures: 9, avatar: "https://i.pravatar.cc/150?img=3" },
-    { id: "4", name: "Armel", points: 540, treasures: 4, avatar: "https://i.pravatar.cc/150?img=4" },
-    { id: "5", name: "Karine", points: 210, treasures: 2, avatar: "https://i.pravatar.cc/150?img=5" },
-    { id: "6", name: "Julien", points: 90, treasures: 1, avatar: "https://i.pravatar.cc/150?img=6" },
+    { id: "1", name: "Ilyass", points: 1280, treasures: 18, avatar: "🥷" },
+    { id: "2", name: "Ambre", points: 920, treasures: 11, avatar: "🦊" },
+    { id: "3", name: "Pierre", points: 740, treasures: 9, avatar: "🐻" },
+    { id: "4", name: "Armel", points: 540, treasures: 4, avatar: "🦁" },
+    { id: "5", name: "Karine", points: 210, treasures: 2, avatar: "🐼" },
+    { id: "6", name: "Julien", points: 90, treasures: 1, avatar: "🐯" },
   ];
 
   const artisans: Artisan[] = [
-    { id: "1", name: "Pierre", creations: 14, avatar: "https://i.pravatar.cc/150?img=3" },
-    { id: "2", name: "Ambre", creations: 9, avatar: "https://i.pravatar.cc/150?img=2" },
-    { id: "3", name: "Ilyass", creations: 7, avatar: "https://i.pravatar.cc/150?img=1" },
-    { id: "4", name: "Armel", creations: 3, avatar: "https://i.pravatar.cc/150?img=4" },
-    { id: "5", name: "Karine", creations: 1, avatar: "https://i.pravatar.cc/150?img=5" },
-    { id: "6", name: "Julien", creations: 0, avatar: "https://i.pravatar.cc/150?img=6" },
+    { id: "1", name: "Pierre", creations: 14, avatar: "🐻" },
+    { id: "2", name: "Ambre", creations: 9, avatar: "🦊" },
+    { id: "3", name: "Ilyass", creations: 7, avatar: "🥷" },
+    { id: "4", name: "Armel", creations: 3, avatar: "🦁" },
+    { id: "5", name: "Karine", creations: 1, avatar: "🐼" },
+    { id: "6", name: "Julien", creations: 0, avatar: "🐯" },
   ];
 
   const sortedExplorers = [...explorers].sort((a, b) => b.points - a.points);
@@ -92,13 +91,14 @@ export default function ClassementScreen() {
               {top3Explorers.map((item, index) => (
                 <View key={item.id} style={styles.top3Card}>
 
-                  <Image
-                  source={{ uri: item.avatar }}
-                  style={[
-                  styles.top3Avatar,
-                  index === 0 && styles.top1Avatar, 
-                  ]}
-                />
+                  <View
+                    style={[
+                      styles.top3Avatar,
+                      index === 0 && styles.top1Avatar,
+                    ]}
+                  >
+                    <Text style={{ fontSize: index === 0 ? 28 : 22 }}>{item.avatar}</Text>
+                  </View>
 
                   <Text style={styles.top3Rank}>
                     {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
@@ -120,7 +120,9 @@ export default function ClassementScreen() {
                   <Text style={styles.rank}>{index + 4}</Text>
 
                   <View style={styles.rowLeft}>
-                    <Image source={{ uri: item.avatar }} style={styles.avatar} />
+                    <View style={styles.avatar}>
+                      <Text style={{ fontSize: 18 }}>{item.avatar}</Text>
+                    </View>
                     <View>
                       <Text style={styles.name}>{item.name}</Text>
                       <Text style={styles.subInfo}>🏺 {item.treasures} trésors trouvés</Text>
@@ -140,13 +142,14 @@ export default function ClassementScreen() {
               {top3Artisans.map((item, index) => (
                 <View key={item.id} style={styles.top3Card}>
 
-                  <Image
-                  source={{ uri: item.avatar }}
-                  style={[
-                  styles.top3Avatar,
-                  index === 0 && styles.top1Avatar, 
-                  ]}
-                  />
+                  <View
+                    style={[
+                      styles.top3Avatar,
+                      index === 0 && styles.top1Avatar,
+                    ]}
+                  >
+                    <Text style={{ fontSize: index === 0 ? 28 : 22 }}>{item.avatar}</Text>
+                  </View>
 
                   <Text style={styles.top3Rank}>
                     {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
@@ -167,7 +170,9 @@ export default function ClassementScreen() {
                   <Text style={styles.rank}>{index + 4}</Text>
 
                   <View style={styles.rowLeft}>
-                    <Image source={{ uri: item.avatar }} style={styles.avatar} />
+                    <View style={styles.avatar}>
+                      <Text style={{ fontSize: 18 }}>{item.avatar}</Text>
+                    </View>
                     <Text style={styles.name}>{item.name}</Text>
                   </View>
 
@@ -239,16 +244,22 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#c9a66b",
     marginBottom: 8,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   top1Avatar: {
-  borderWidth: 3,
-  borderColor: "#FFD700", 
-  shadowColor: "#FFD700",
-  shadowOffset: { width: 0, height: 0 },
-  shadowOpacity: 0.8,
-  shadowRadius: 8,
-  elevation: 8,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 3,
+    borderColor: "#FFD700",
+    shadowColor: "#FFD700",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 8,
   },
 
   top3Rank: { fontSize: 26, marginBottom: 4 },
@@ -305,6 +316,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "#d7c7a0",
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   name: { fontSize: 16, color: "#5a4632" },

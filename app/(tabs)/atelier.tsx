@@ -11,6 +11,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import Slider from "@react-native-community/slider";
@@ -28,6 +29,8 @@ interface Creation {
   pixels: string[];
   status: CreationStatus;
   updatedAt: string;
+  description?: string;
+  clues?: string[];
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -76,11 +79,19 @@ const MOCK_CREATIONS: Creation[] = [
   },
   {
     id: "5",
-    name: "Brouillon épée",
-    gridSize: 24,
-    pixels: Array.from({ length: 24 * 24 }, (_, i) =>
-      i % 8 === 0 ? "#60A5FA" : "#FFFFFF"
-    ),
+    name: "Épée du Héros",
+    gridSize: 16,
+    pixels: Array.from({ length: 16 * 16 }, (_, i) => {
+      const r = Math.floor(i / 16);
+      const c = i % 16;
+      if (r === 13 && c === 2) return "#FBBF24";
+      if ((r === 12 && c === 3) || (r === 11 && c === 4)) return "#8B5CF6";
+      if ((r === 10 && c === 3) || (r === 11 && c === 2) || (r === 10 && c === 5) || (r === 12 && c === 5)) return "#FBBF24";
+      if (r + c === 15 && c > 5 && c < 14) return "#94A3B8";
+      if (r + c === 16 && c > 5 && c < 15) return "#CBD5E1";
+      if (r + c === 14 && c > 4 && c < 14) return "#CBD5E1";
+      return "#FFFFFF";
+    }),
     status: "draft",
     updatedAt: "2026-03-17",
   },
@@ -286,12 +297,6 @@ export default function AtelierScreen() {
     useState<CreationStatus | null>(null);
   const [editingCreation, setEditingCreation] = useState<Creation | null>(null);
 
-  // Avertissement "cette création est publiée"
-  const [publishedWarnModal, setPublishedWarnModal] = useState<{
-    visible: boolean;
-    creation: Creation | null;
-  }>({ visible: false, creation: null });
-
   const handleOpenCategory = (status: CreationStatus) => {
     setSelectedCategory(status);
     setView("category");
@@ -303,23 +308,24 @@ export default function AtelierScreen() {
   };
 
   const handleEditCreation = (creation: Creation) => {
-    if (creation.status === "pending") return; // non éditable
-    if (creation.status === "published") {
-      setPublishedWarnModal({ visible: true, creation });
-      return;
-    }
     setEditingCreation(creation);
     setView("editor");
   };
 
-  const handleSaveDraft = ({
+  const handleSave = ({
     pixels,
     gridSize,
     name,
+    description,
+    clues,
+    status,
   }: {
     pixels: string[];
     gridSize: number;
     name: string;
+    description: string;
+    clues: string[];
+    status: CreationStatus;
   }) => {
     if (editingCreation) {
       // Mise à jour
@@ -331,7 +337,9 @@ export default function AtelierScreen() {
                 pixels,
                 gridSize,
                 name: name || c.name,
-                status: "draft",
+                description,
+                clues,
+                status,
                 updatedAt: new Date().toISOString().slice(0, 10),
               }
             : c
@@ -344,7 +352,9 @@ export default function AtelierScreen() {
         name: name || "Nouvelle création",
         gridSize,
         pixels,
-        status: "draft",
+        status,
+        description,
+        clues,
         updatedAt: new Date().toISOString().slice(0, 10),
       };
       setCreations((prev) => [newCreation, ...prev]);
@@ -354,13 +364,18 @@ export default function AtelierScreen() {
   };
 
   if (view === "editor") {
+    const isReadOnly =
+      editingCreation?.status === "pending" ||
+      editingCreation?.status === "published";
+
     return (
       <PixelEditor
         initialCreation={editingCreation}
         onCancel={() => {
           setView(selectedCategory ? "category" : "home");
         }}
-        onSaveDraft={handleSaveDraft}
+        onSave={handleSave}
+        readOnly={isReadOnly}
       />
     );
   }
@@ -409,22 +424,6 @@ export default function AtelierScreen() {
           </ScrollView>
         )}
 
-        {/* Modal avertissement publiée */}
-        <ConfirmModal
-          visible={publishedWarnModal.visible}
-          message={`⚠️ Cette création est publiée.\n\nSi vous l'éditez, elle repassera en attente de validation et ne sera plus accessible publiquement avant d'être re-validée.\n\nVoulez-vous continuer ?`}
-          confirmLabel="Éditer quand même"
-          confirmColor="#F59E0B"
-          onConfirm={() => {
-            const c = publishedWarnModal.creation!;
-            setPublishedWarnModal({ visible: false, creation: null });
-            setEditingCreation(c);
-            setView("editor");
-          }}
-          onCancel={() =>
-            setPublishedWarnModal({ visible: false, creation: null })
-          }
-        />
       </SafeAreaView>
     );
   }
@@ -605,19 +604,29 @@ function CreationCard({
 function PixelEditor({
   initialCreation,
   onCancel,
-  onSaveDraft,
+  onSave,
+  readOnly = false,
 }: {
   initialCreation: Creation | null;
   onCancel: () => void;
-  onSaveDraft: (data: {
+  onSave: (data: {
     pixels: string[];
     gridSize: number;
     name: string;
+    description: string;
+    clues: string[];
+    status: CreationStatus;
   }) => void;
+  readOnly?: boolean;
 }) {
+  const [isLocked, setIsLocked] = useState(readOnly);
+  const [editWarningVisible, setEditWarningVisible] = useState(false);
   const [creationName, setCreationName] = useState(
     initialCreation?.name ?? "Nouvelle création"
   );
+  const [description, setDescription] = useState(initialCreation?.description || "");
+  const [clues, setClues] = useState<string[]>(initialCreation?.clues || ["", "", ""]);
+  const [submitModalVisible, setSubmitModalVisible] = useState(false);
 
   // Drawer swipeable
   const DRAWER_CLOSED_HEIGHT = 130; // hauteur minimale (handle + outils rapides)
@@ -773,7 +782,7 @@ function PixelEditor({
             });
             return;
           }
-          if (e.nativeEvent.touches.length === 1) {
+          if (!isLocked && e.nativeEvent.touches.length === 1) {
             paintAt(e.nativeEvent.pageX, e.nativeEvent.pageY);
           }
         },
@@ -795,7 +804,7 @@ function PixelEditor({
             setLastTwoFingerCenter(newCenter);
             return;
           }
-          if (tool !== "bucket" && e.nativeEvent.touches.length === 1) {
+          if (!isLocked && tool !== "bucket" && e.nativeEvent.touches.length === 1) {
             paintAt(e.nativeEvent.pageX, e.nativeEvent.pageY);
           }
         },
@@ -896,6 +905,92 @@ function PixelEditor({
             }
           />
 
+          {/* Alerte modification publié */}
+          <ConfirmModal
+            visible={editWarningVisible}
+            message="Modifier cette création la fera repasser en brouillon et elle devra être validée de nouveau pour être publiée. Continuer ?"
+            confirmLabel="Oui, modifier"
+            onConfirm={() => {
+              setIsLocked(false);
+              setEditWarningVisible(false);
+            }}
+            onCancel={() => setEditWarningVisible(false)}
+          />
+
+          <Modal
+            visible={submitModalVisible}
+            animationType="slide"
+            transparent={false}
+          >
+            <SafeAreaView style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
+              <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{flex: 1}}>
+                <View style={edStyles.submitHeader}>
+                  <Pressable style={edStyles.closeBtn} onPress={() => setSubmitModalVisible(false)}>
+                    <Text style={{ fontWeight: "600" }}>← Retour</Text>
+                  </Pressable>
+                  <Text style={edStyles.title}>Finaliser le trésor</Text>
+                </View>
+                <ScrollView contentContainerStyle={edStyles.submitForm}>
+                  <Text style={edStyles.formLabel}>Nom du trésor</Text>
+                  <TextInput
+                    style={edStyles.textInput}
+                    value={creationName}
+                    onChangeText={setCreationName}
+                    placeholder="Ex: Épée légendaire"
+                  />
+                  
+                  <Text style={edStyles.formLabel}>Description (affichée sur la carte)</Text>
+                  <TextInput
+                    style={[edStyles.textInput, { height: 80, textAlignVertical: "top" }]}
+                    value={description}
+                    onChangeText={setDescription}
+                    multiline
+                    placeholder="Décrivez ce trésor..."
+                  />
+
+                  <Text style={edStyles.formLabel}>Indices (Difficulté croissante)</Text>
+                  <Text style={edStyles.formSubLabel}>Il faut 3 indices pour soumettre la création.</Text>
+                  
+                  <TextInput
+                    style={edStyles.textInput}
+                    value={clues[0]}
+                    onChangeText={(t) => setClues([t, clues[1], clues[2]])}
+                    placeholder="Indice 1 (Facile)"
+                  />
+                  <TextInput
+                    style={edStyles.textInput}
+                    value={clues[1]}
+                    onChangeText={(t) => setClues([clues[0], t, clues[2]])}
+                    placeholder="Indice 2 (Moyen)"
+                  />
+                  <TextInput
+                    style={edStyles.textInput}
+                    value={clues[2]}
+                    onChangeText={(t) => setClues([clues[0], clues[1], t])}
+                    placeholder="Indice 3 (Difficile)"
+                  />
+                </ScrollView>
+                <View style={edStyles.submitFooter}>
+                  <Pressable
+                    style={[
+                      edStyles.finalSubmitBtn,
+                      (!description || clues.some(c => !c.trim())) && { opacity: 0.5 }
+                    ]}
+                    disabled={!description || clues.some(c => !c.trim())}
+                    onPress={() => {
+                      setSubmitModalVisible(false);
+                      onSave({ pixels, gridSize, name: creationName, description, clues, status: "pending" });
+                    }}
+                  >
+                    <Text style={{color: "white", fontWeight: "bold", textAlign: "center", fontSize: 16}}>
+                      Soumettre à la validation
+                    </Text>
+                  </Pressable>
+                </View>
+              </KeyboardAvoidingView>
+            </SafeAreaView>
+          </Modal>
+
           {/* Header éditeur */}
           <View style={edStyles.header}>
             <Pressable style={edStyles.closeBtn} onPress={onCancel}>
@@ -904,14 +999,40 @@ function PixelEditor({
             <Text style={edStyles.title} numberOfLines={1}>
               {creationName}
             </Text>
-            <Pressable
-              style={edStyles.saveBtn}
-              onPress={() =>
-                onSaveDraft({ pixels, gridSize, name: creationName })
-              }
-            >
-              <Text style={{ color: "white", fontWeight: "600" }}>Sauver</Text>
-            </Pressable>
+            {isLocked ? (
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                {initialCreation?.status === "published" && (
+                  <Pressable
+                    style={edStyles.editModeBtn}
+                    onPress={() => setEditWarningVisible(true)}
+                  >
+                    <Text style={{ color: "white", fontWeight: "600" }}>✏️ Modifier</Text>
+                  </Pressable>
+                )}
+                <View style={edStyles.readOnlyBadge}>
+                  <Text style={edStyles.readOnlyText}>
+                    {initialCreation?.status === "published" ? "✅ Publiée" : "⏳ En attente"}
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <View style={{flexDirection: "row", gap: 8}}>
+                <Pressable
+                  style={edStyles.draftBtn}
+                  onPress={() =>
+                    onSave({ pixels, gridSize, name: creationName, description, clues, status: "draft" })
+                  }
+                >
+                  <Text style={{ color: "#111", fontWeight: "600" }}>Brouillon</Text>
+                </Pressable>
+                <Pressable
+                  style={edStyles.saveBtn}
+                  onPress={() => setSubmitModalVisible(true)}
+                >
+                  <Text style={{ color: "white", fontWeight: "600" }}>Suivant</Text>
+                </Pressable>
+              </View>
+            )}
           </View>
 
           {/* Zone de dessin */}
@@ -965,20 +1086,25 @@ function PixelEditor({
                 Reset
               </Text>
             </Pressable>
-            <View
-              style={{
-                width: 1,
-                height: 25,
-                backgroundColor: "rgba(255,255,255,0.3)",
-              }}
-            />
-            <View
-              style={[edStyles.currentColorCircle, { backgroundColor: color }]}
-            />
+            {!isLocked && (
+              <>
+                <View
+                  style={{
+                    width: 1,
+                    height: 25,
+                    backgroundColor: "rgba(255,255,255,0.3)",
+                  }}
+                />
+                <View
+                  style={[edStyles.currentColorCircle, { backgroundColor: color }]}
+                />
+              </>
+            )}
           </View>
 
           {/* Drawer outils — swipeable */}
-          <Animated.View style={[edStyles.drawer, { height: drawerHeight, overflow: 'hidden' }]}>
+          {!isLocked && (
+            <Animated.View style={[edStyles.drawer, { height: drawerHeight, overflow: 'hidden' }]}>
             {/* Zone de drag (handle) */}
             <View style={edStyles.handle} {...handlePan.panHandlers}>
               <View style={edStyles.handleBar} />
@@ -1085,6 +1211,7 @@ function PixelEditor({
               </Pressable>
             </ScrollView>
           </Animated.View>
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -1355,6 +1482,58 @@ const edStyles = StyleSheet.create({
     borderRadius: 10,
   },
   saveBtn: { padding: 10, backgroundColor: "#111", borderRadius: 10 },
+  draftBtn: { padding: 10, backgroundColor: "#E5E7EB", borderRadius: 10 },
+  editModeBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: "#111827",
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  readOnlyBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
+  },
+  readOnlyText: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#4B5563",
+  },
+
+  submitHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderColor: "#E5E7EB",
+    backgroundColor: "white",
+  },
+  submitForm: { padding: 20 },
+  formLabel: { fontSize: 15, fontWeight: "bold", color: "#111", marginBottom: 6, marginTop: 16 },
+  formSubLabel: { fontSize: 13, color: "#6B7280", marginBottom: 10 },
+  textInput: {
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 15,
+    marginBottom: 12,
+  },
+  submitFooter: {
+    padding: 20,
+    backgroundColor: "white",
+    borderTopWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  finalSubmitBtn: {
+    backgroundColor: "#10B981",
+    padding: 16,
+    borderRadius: 12,
+  },
 
   mainArea: { flex: 1, overflow: "hidden" },
   centerContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
