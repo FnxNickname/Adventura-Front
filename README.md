@@ -4,6 +4,53 @@
 
 Adventura est une application mobile de jeu de piste géolocalisé. Les joueurs partent à la découverte de "quêtes" cachées dans le monde réel, résolvent des énigmes et collectionnent des trésors sous forme de pixel art.
 
+## Présentation de l'application
+
+Adventura est une application de chasse au trésor géolocalisée qui combine exploration réelle, collecte et création artistique. Le joueur se déplace dans le monde réel, suit sa position sur la carte, repère des zones de trésor et se rapproche physiquement de ces lieux pour progresser. L'expérience met en avant la curiosité, l'esprit d’aventure et une progression de type RPG (points, niveaux, inventaire, collection).
+
+L'univers visuel est centré sur le pixel art : les trésors trouvés et créés prennent la forme d’objets pixelisés. La progression se fait via des récompenses (pièces, objets, cosmétiques) qui permettent de personnaliser son profil et d’améliorer son expérience. La dimension créative est portée par l’Atelier, où les joueurs peuvent concevoir leurs propres trésors et les publier.
+
+## Boucle de jeu (vue d'ensemble)
+
+1. **Explorer la carte** : repérer des zones de trésor et se rapprocher d’elles.
+2. **Obtenir des indices** : utiliser des clés d’indices pour affiner la localisation d’un trésor.
+3. **Débloquer la récompense** : passer en réalité augmentée pour ouvrir un coffre et récupérer une récompense.
+4. **Progresser** : gagner des PX et des pièces, compléter sa collection et gravir les classements.
+5. **Créer** : dessiner des trésors en pixel art dans l’Atelier et gérer leur statut avant publication.
+6. **Personnaliser** : acheter des cosmétiques et boosters dans le Marché, choisir un thème de carte et un avatar.
+
+## Fonctionnalités principales (détaillées)
+
+- **Carte interactive géolocalisée**
+  - Affichage de la position du joueur en temps réel.
+  - Zones de trésors matérialisées sur la carte.
+  - Contrôles de zoom et recentrage rapide sur l’utilisateur.
+  - Accès rapide à l’expérience AR depuis la carte.
+- **Chasses au trésor en AR**
+  - Interaction avec un coffre en réalité augmentée.
+  - Ouverture par appui prolongé avec retour haptique.
+  - Récompense immédiate lors de l’ouverture.
+- **Atelier de création (pixel art)**
+  - Éditeur de dessin avec grille et tailles variables.
+  - Outils de création (pinceau, gomme, pipette, remplissage).
+  - Gestion des créations par statut : brouillon, en attente, publié.
+  - Prévisualisation des créations et organisation par catégories.
+- **Marché & économie**
+  - Boutique de cosmétiques : avatars et thèmes de carte.
+  - Objets de progression : clés d’indices et boosters de pièces.
+  - Raretés (commun, rare, épique, légendaire) et prix en pièces.
+  - Gestion d’un mini-inventaire d’objets achetés.
+- **Classements**
+  - Classement des explorateurs (points et trésors trouvés).
+  - Classement des artisans (créations publiées).
+  - Mise en avant des meilleurs joueurs et suivi du rang.
+- **Profil & progression**
+  - Statistiques détaillées : PX, trésors trouvés/créés, expéditions, badges.
+  - Inventaire d’objets et collection des trésors découverts.
+  - Paramètres de personnalisation (thèmes de carte, avatar).
+  - Notifications (mises à jour, cadeaux, informations).
+  - Signalement de problèmes ou contenus inappropriés.
+
 ## Structure du Projet
 
 Le projet est développé avec React Native et Expo, en utilisant TypeScript. La navigation est gérée par `expo-router`.
