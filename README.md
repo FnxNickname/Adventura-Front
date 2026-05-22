@@ -4,6 +4,19 @@
 
 Adventura est une application mobile de jeu de piste géolocalisé. Les joueurs partent à la découverte de "quêtes" cachées dans le monde réel, résolvent des énigmes et collectionnent des trésors sous forme de pixel art.
 
+## Présentation de l'application
+
+Adventura mêle exploration réelle et progression RPG légère : vous suivez votre position sur une carte, repérez des zones de trésor, utilisez des indices, puis récupérez des récompenses et des pièces pour enrichir votre collection. L'expérience est pensée pour encourager la découverte, la créativité et la compétition amicale.
+
+## Fonctionnalités principales
+
+- **Carte interactive géolocalisée** : suivi de la position, zones de trésors, zoom et recentrage rapide.
+- **Chasses au trésor en AR** : ouverture de coffres en réalité augmentée avec retour haptique.
+- **Atelier de création** : éditeur de pixel art pour concevoir des trésors, gérer leurs statuts (brouillon, en attente, publié).
+- **Marché** : achats de cosmétiques (avatars, thèmes de carte) et d'objets de progression (clés d'indices, boosters de pièces).
+- **Classements** : compétitions entre explorateurs et artisans pour les points, trésors et créations.
+- **Profil & progression** : statistiques, inventaire, collection de trouvailles, thèmes actifs, notifications et signalement.
+
 ## Structure du Projet
 
 Le projet est développé avec React Native et Expo, en utilisant TypeScript. La navigation est gérée par `expo-router`.
